@@ -3,11 +3,12 @@
 $hasMysql = (bool)(getenv('MYSQLHOST') || getenv('DB_HOST'));
 
 if (!$hasMysql) {
-    $dbFile = getenv('PORTAL_SQLITE') ?: (__DIR__ . '/portal.sqlite');
+    $bundle = __DIR__ . '/portal.sqlite';
+    $dbFile = getenv('PORTAL_SQLITE') ?: $bundle;
     if (!getenv('PORTAL_SQLITE') && (getenv('VERCEL') || !is_writable(__DIR__) || !is_writable($dbFile))) {
-        $tmpDb = rtrim(sys_get_temp_dir(), '/\\') . '/portal_v5.sqlite';
-        if (!is_file($tmpDb) || filesize($tmpDb) < 100000) {
-            @copy(__DIR__ . '/portal.sqlite', $tmpDb);
+        $tmpDb = rtrim(sys_get_temp_dir(), '/\\') . '/portal_v5_369.sqlite';
+        if (!is_file($tmpDb) || (is_file($bundle) && filesize($tmpDb) !== filesize($bundle))) {
+            @copy($bundle, $tmpDb);
             @chmod($tmpDb, 0666);
         }
         $dbFile = $tmpDb;

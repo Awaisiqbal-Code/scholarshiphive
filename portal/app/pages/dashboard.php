@@ -35,7 +35,8 @@ $taxDone = $cnt(fn($r) => ($r['tax_meeting'] ?? '') === 'Yes');
 $due = due_list($rows);
 $dueNow = count(array_filter($due, fn($d) => $d['date'] <= today()));
 $scopeIds = array_map(fn($r) => (int)$r['id'], $rows);   // only the students this person sees
-$overdueTasksCount = $scopeIds ? (int)q("SELECT COUNT(*) FROM student_tasks WHERE status = 'pending' AND (due_date <= CURDATE() OR due_date IS NULL) AND student_id IN (" . implode(',', $scopeIds) . ")")->fetchColumn() : 0;
+$tNow = today();
+$overdueTasksCount = $scopeIds ? (int)q("SELECT COUNT(*) FROM student_tasks WHERE status = 'pending' AND (due_date <= ? OR due_date IS NULL) AND student_id IN (" . implode(',', $scopeIds) . ")", [$tNow])->fetchColumn() : 0;
 
 $title = $c ? country_name($c) . ' Portal' : ($admin ? 'All Countries Management' : 'Hello, ' . $u['name']);
 page_start($title, $u, PORTALS[$u['role']]['label']);

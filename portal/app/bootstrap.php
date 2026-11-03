@@ -58,18 +58,17 @@ if (getenv('VERCEL') && is_writable(sys_get_temp_dir())) {
     session_save_path(sys_get_temp_dir());
 }
 
-session_name('PTPSESSID');
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => base_url() === '' ? '/' : base_url() . '/',
-    'secure'   => $https,
-    'httponly' => true,
-    'samesite' => 'Lax',
-]);
-ini_set('session.use_strict_mode', '1');
-ini_set('session.use_only_cookies', '1');
-
 if (session_status() === PHP_SESSION_NONE) {
+    session_name('PTPSESSID');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => base_url() === '' ? '/' : base_url() . '/',
+        'secure'   => $https,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
     session_start();
 }
 
@@ -80,9 +79,9 @@ if (!empty($_COOKIE['PTPSESSDATA'])) {
     if (count($parts) === 2 && hash_equals(hash_hmac('sha256', $parts[0], PTP_COOKIE_SECRET), $parts[1])) {
         $decoded = json_decode((string)base64_decode($parts[0], true), true);
         if (is_array($decoded)) {
-            foreach (['auth', 'last_login_role', 'csrf', 'flash'] as $k) {
-                if (empty($_SESSION[$k]) && isset($decoded[$k])) {
-                    $_SESSION[$k] = $decoded[$k];
+            foreach ($decoded as $k => $v) {
+                if (!isset($_SESSION[$k])) {
+                    $_SESSION[$k] = $v;
                 }
             }
         }
@@ -90,14 +89,8 @@ if (!empty($_COOKIE['PTPSESSDATA'])) {
 }
 
 register_shutdown_function(function () use ($https): void {
-    if (!headers_sent()) {
-        $payload = [
-            'auth'            => $_SESSION['auth'] ?? [],
-            'last_login_role' => $_SESSION['last_login_role'] ?? null,
-            'csrf'            => $_SESSION['csrf'] ?? null,
-            'flash'           => $_SESSION['flash'] ?? [],
-        ];
-        $b64 = base64_encode((string)json_encode($payload));
+    if (!headers_sent() && !empty($_SESSION)) {
+        $b64 = base64_encode((string)json_encode($_SESSION));
         $sig = hash_hmac('sha256', $b64, PTP_COOKIE_SECRET);
         setcookie('PTPSESSDATA', $b64 . '.' . $sig, [
             'expires'  => 0,
