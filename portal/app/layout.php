@@ -3,78 +3,65 @@ declare(strict_types=1);
 
 function nav_items(string $role): array {
     return match ($role) {
-        'admin'   => ['admin/index.php' => 'Dashboard', 'admin/students.php' => 'Students', 'admin/officers.php' => 'Processing Officers', 'admin/reports.php' => 'Reports', 'admin/staff.php' => 'Staff and admins', 'admin/logins.php' => 'Student logins'],
-        'officer' => ['officer/index.php' => 'Dashboard', 'officer/students.php' => 'My students'],
+        'admin'   => ['admin/index.php' => 'Overview', 'admin/students.php' => 'Students', 'admin/tax.php' => 'Tax meetings',
+                      'admin/datacheck.php' => 'Data check', 'admin/downloads.php' => 'Download all', 'admin/staff.php' => 'Staff',
+                      'admin/logins.php' => 'Student logins', 'admin/activity.php' => 'Activity', 'admin/upgrade.php' => 'System'],
+        'subadmin' => ['admin/index.php' => 'Overview', 'admin/students.php' => 'Students', 'admin/tax.php' => 'Tax meetings',
+                      'admin/datacheck.php' => 'Data check', 'admin/downloads.php' => 'Download all', 'admin/staff.php' => 'Staff',
+                      'admin/logins.php' => 'Student logins', 'admin/activity.php' => 'Activity'],
+        'officer' => ['officer/index.php' => 'Dashboard', 'officer/students.php' => 'My students', 'officer/sheet.php' => 'Sheet view'],
+        'tax'     => ['tax/index.php' => 'Meetings', 'tax/students.php' => 'All students'],
         'student' => ['student/index.php' => 'My file'],
         default   => [],
     };
 }
 
-/**
- * Accessible Sun/Moon Theme Toggle Button.
- */
-function theme_toggle_btn(): string {
-    return '<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme" title="Switch between Light and Dark mode" aria-pressed="false">'
-         . '<svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
-         . '<svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
-         . '<span data-theme-label>Dark</span>'
-         . '</button>';
+function brand_mark(): string {
+    // Shield with a honeycomb cell and a graduation cap: the ScholarshipHive motif.
+    return '<svg class="mark" viewBox="0 0 40 44" aria-hidden="true"><path d="M20 2 37 8v13c0 10.5-7.2 18.6-17 21C10.2 39.6 3 31.5 3 21V8Z" fill="var(--brand)"/>'
+        . '<path d="M20 12.5 27 16.5v8L20 28.5l-7-4v-8Z" fill="none" stroke="var(--sky)" stroke-width="1.8"/>'
+        . '<path d="M11 15.2 20 11l9 4.2-9 4.2Z" fill="#fff"/><path d="M15 17.6v3.2c0 1.4 2.3 2.6 5 2.6s5-1.2 5-2.6v-3.2l-5 2.3Z" fill="#fff" opacity=".85"/></svg>';
 }
 
-/**
- * Inline early-execution script to prevent Flash of Incorrect Theme (FOUC).
- */
-function theme_boot_script(): string {
-    return "<script>(function(){try{var t=localStorage.getItem('ptp_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>";
+function wordmark(string $sub = ''): string {
+    return '<div class="brand">' . brand_mark() . '<div><div class="wm">ScholarshipHive <i>Edutancy</i></div><small>' . h($sub ?: 'Processing Portal') . '</small></div></div>';
 }
 
 function page_start(string $title, ?array $u = null, string $portalLabel = ''): void {
     global $CONFIG;
     $self = ltrim(substr(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '', strlen(base_url())), '/');
-    $cookieTheme = $_COOKIE['ptp_theme'] ?? '';
-    $htmlThemeAttr = in_array($cookieTheme, ['light', 'dark'], true) ? ' data-theme="' . h($cookieTheme) . '"' : '';
     ?><!doctype html>
-<html lang="en"<?= $htmlThemeAttr ?>>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title><?= h($title) ?> · <?= h($CONFIG['app_name']) ?></title>
-<?= theme_boot_script() ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,700;1,400&display=swap">
 <link rel="stylesheet" href="<?= h(url('assets/style.css')) ?>">
 <script src="<?= h(url('assets/app.js')) ?>" defer></script>
 </head>
 <body>
-<div class="wrap">
-<?php if ($u):
-    $roleBadge = ucfirst($u['role']);
-    if ($u['role'] === 'officer') {
-        $roleBadge = (($u['department'] ?? 'backend') === 'frontend') ? 'Front-End Officer' : 'Back-End Officer';
-    }
-?>
+<?php if ($u): ?>
 <header class="top">
-  <a class="brand" href="<?= h(url(PORTALS[$u['role']]['home'] ?? 'index.php')) ?>" style="text-decoration:none; color:inherit;"><div class="mark">P</div><div><div class="app"><?= h($CONFIG['app_name']) ?></div><small><?= h($portalLabel) ?></small></div></a>
-  <nav class="tabs">
-    <?php foreach (nav_items($u['role']) as $href => $label): ?>
-      <a href="<?= h(url($href)) ?>" <?= $self === $href ? 'aria-current="page"' : '' ?>><?= h($label) ?></a>
-    <?php endforeach; ?>
-    <a href="<?= h(url('account/password.php?portal=' . $u['role'])) ?>" <?= $self === 'account/password.php' ? 'aria-current="page"' : '' ?>>Change password</a>
-  </nav>
-  <div class="who">
-    <?= theme_toggle_btn() ?>
-    <span class="role"><?= h($roleBadge) ?></span>
-    <b><?= h($u['name']) ?></b>
-    <a class="btn sm ghost" href="<?= h(url('index.php?switch=1')) ?>">Switch account</a>
-    <form method="post" action="<?= h(url('logout.php')) ?>"><?= csrf_field() ?><input type="hidden" name="role" value="<?= h($u['role']) ?>"><input type="hidden" name="portal" value="<?= h($u['role']) ?>"><button class="btn sm ghost" type="submit">Sign out</button></form>
+  <div class="top-in">
+    <?= wordmark($portalLabel) ?>
+    <nav class="tabs" aria-label="Main">
+      <?php foreach (nav_items($u['role']) as $href => $label): ?>
+        <a href="<?= h(url($href)) ?>" <?= $self === $href ? 'aria-current="page"' : '' ?>><?= h($label) ?></a>
+      <?php endforeach; ?>
+      <a href="<?= h(url('account/password.php')) ?>" <?= $self === 'account/password.php' ? 'aria-current="page"' : '' ?>>Password</a>
+    </nav>
+    <div class="who">
+      <span class="role"><?= h(role_label($u)) ?></span>
+      <b><?= h($u['name']) ?></b>
+      <form method="post" action="<?= h(url('logout.php')) ?>"><?= csrf_field() ?><button class="btn sm ghost" type="submit">Sign out</button></form>
+    </div>
   </div>
 </header>
-<?php else: ?>
-<div class="guest-topbar">
-  <?= theme_toggle_btn() ?>
-</div>
 <?php endif; ?>
+<div class="wrap">
 <main>
 <?php foreach (take_flash() as [$type, $msg]): ?>
   <div class="flash <?= h($type) ?>" role="status"><?= h($msg) ?></div>
@@ -83,22 +70,43 @@ function page_start(string $title, ?array $u = null, string $portalLabel = ''): 
 
 function page_end(): void { ?>
 </main>
+<footer class="foot">ScholarshipHive Edutancy · Guiding every student's journey with clarity, honesty and expertise.</footer>
 </div>
 </body>
 </html>
 <?php }
 
+/** Row of country portals. $page is the page the links open (e.g. 'admin/index.php'). */
+function country_bar(array $u, string $current, string $page, array $counts = []): void {
+    $list = user_countries($u);
+    if (count($list) < 2 && $u['role'] === 'officer') return;
+    echo '<nav class="countries" aria-label="Country portals">';
+    echo '<a href="' . h(url($page)) . '"' . ($current === '' ? ' aria-current="page"' : '') . '><span class="cc">ALL</span>All countries' . (isset($counts['']) ? ' <span class="n">' . (int)$counts[''] . '</span>' : '') . '</a>';
+    foreach ($list as $c) {
+        echo '<a href="' . h(url($page . '?c=' . $c)) . '"' . ($current === $c ? ' aria-current="page"' : '') . '><span class="cc">' . h(COUNTRIES[$c]['code']) . '</span>' . h(country_name($c))
+           . (isset($counts[$c]) ? ' <span class="n">' . (int)$counts[$c] . '</span>' : '') . '</a>';
+    }
+    echo '</nav>';
+}
+
 function pill_class(string $v): string {
-    return match ($v) {
-        'Granted', 'Verified', 'Yes', 'Done' => 'ok',
-        'Refused', 'Non-Refundable', 'No'    => 'bad',
-        'Pending', 'Requested'               => 'warn',
-        default                              => 'acc',
+    $l = strtolower(trim($v));
+    return match (true) {
+        in_array($l, ['granted', 'verified', 'yes', 'done', 'completed', 'accepted', 'received', 'offer received', 'superlegalization complete'], true) => 'ok',
+        in_array($l, ['refused', 'non-refundable', 'no', 'rejected', 'stopped', 'stop', 'refund initiated'], true) => 'bad',
+        in_array($l, ['pending', 'requested', 'applied', 'conditional offer', 'mofa attested / legalization pending', 'attestation not complete'], true) => 'warn',
+        default => 'acc',
     };
+}
+function pill(?string $v, ?string $cls = null): string {
+    $v = trim((string)$v);
+    if ($v === '') return '';
+    return '<span class="pill ' . h($cls ?? pill_class($v)) . '">' . h(mb_strimwidth($v, 0, 60, '…')) . '</span>';
 }
 
 function progress_dots(array $r): string {
-    $o = '<span class="steps" title="' . done_count($r) . ' of ' . count(STAGES) . ' steps">';
-    foreach (STAGES as $i => $_) $o .= '<i class="' . (stage_done($r, $i) ? 'd' : '') . '"></i>';
+    $s = row_stages($r);
+    $o = '<span class="steps" title="' . done_count($r) . ' of ' . count($s) . ' steps">';
+    foreach ($s as $i => $_) $o .= '<i class="' . (stage_done($r, $i) ? 'd' : '') . '"></i>';
     return $o . '</span>';
 }

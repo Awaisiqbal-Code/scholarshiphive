@@ -48,49 +48,6 @@ function safe_link(?string $u): ?string {
     return preg_match('#^https?://#i', $u) ? $u : null;
 }
 
-/**
- * Resolves the valid recorded meeting or Zoom video URL for a student record.
- * Returns null if no actual meeting video/session link exists.
- */
-function student_meeting_url(array $s): ?string {
-    $ml = trim((string)($s['meeting_link'] ?? ''));
-    $dl = trim((string)($s['drive_link'] ?? ''));
-    if ($ml !== '' && $ml !== $dl && safe_link($ml) && !str_contains($ml, '/drive/folders/')) {
-        return $ml;
-    }
-    if (!empty($s['drive_files_json'])) {
-        $dfj = is_array($s['drive_files_json']) ? $s['drive_files_json'] : json_decode((string)$s['drive_files_json'], true);
-        if (is_array($dfj)) {
-            if (!empty($dfj['meeting_link']) && $dfj['meeting_link'] !== $dl && safe_link($dfj['meeting_link']) && !str_contains((string)$dfj['meeting_link'], '/drive/folders/')) {
-                return trim((string)$dfj['meeting_link']);
-            }
-            if (!empty($dfj['files']) && is_array($dfj['files'])) {
-                foreach ($dfj['files'] as $f) {
-                    $fn = strtolower($f['name'] ?? '');
-                    $rt = strtolower($f['raw_title'] ?? '');
-                    if (preg_match('/\.(pdf|jpg|jpeg|png|doc|docx)\b/i', $fn) || str_contains($rt, ' pdf')) {
-                        continue;
-                    }
-                    if (!empty($f['is_meeting']) || str_ends_with($fn, '.mp4') || str_ends_with($fn, '.m4a') || str_contains($rt, 'video')) {
-                        if (!empty($f['id'])) {
-                            return 'https://drive.google.com/file/d/' . $f['id'] . '/view';
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return null;
-}
-
-/**
- * Returns true only if the student has a confirmed recorded meeting or Zoom video link.
- */
-function student_has_meeting(array $s): bool {
-    return student_meeting_url($s) !== null;
-}
-
-
 function random_password(int $len = 10): string {
     $chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
     $out = '';
@@ -110,3 +67,25 @@ function make_username(string $name): string {
     while (q('SELECT 1 FROM users WHERE username = ?', [$u])->fetchColumn()) { $n++; $u = $base . $n; }
     return $u;
 }
+
+// ---------- encryption for stored account passwords (AES-256-GCM) ----------
+function app_key(): string {
+    global $CONFIG;
+    $k = base64_decode((string)($CONFIG['app_key'] ?? ''), true);
+    if ($k === false || strlen($k) !== 32) { http_response_code(500); exit('app_key in app/config.php is missing or invalid.'); }
+    return $k;
+}
+function enc(?string $plain): ?string {
+    if ($plain === null || $plain === '') return null;
+    $iv = random_bytes(12); $tag = '';
+    $c = openssl_encrypt($plain, 'aes-256-gcm', app_key(), OPENSSL_RAW_DATA, $iv, $tag);
+    return 'v1:' . base64_encode($iv . $tag . $c);
+}
+function dec(?string $stored): string {
+    if (!$stored || !str_starts_with($stored, 'v1:')) return '';
+    $raw = base64_decode(substr($stored, 3), true);
+    if ($raw === false || strlen($raw) < 29) return '';
+    $p = openssl_decrypt(substr($raw, 28), 'aes-256-gcm', app_key(), OPENSSL_RAW_DATA, substr($raw, 0, 12), substr($raw, 12, 16));
+    return $p === false ? '' : $p;
+}
+function rs(?string $v): string { return $v === null || $v === '' ? '' : 'Rs ' . number_format((float)$v); }
