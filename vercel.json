@@ -5,6 +5,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/cron.php?token=scholarshiphive_cron_secret_2026",
+      "schedule": "0 4,13 * * *"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",

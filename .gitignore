@@ -6,6 +6,8 @@
 portal/app/storage/files/*
 !portal/app/storage/files/.gitkeep
 !portal/app/storage/files/test.pdf
+portal/app/storage/exports/*
+!portal/app/storage/exports/.gitkeep
 !portal/app/storage/.htaccess
 
 # Environment and secrets
