@@ -13,6 +13,20 @@ function db(): PDO {
     try {
         if (!empty($CONFIG['dsn'])) {               // used for local testing only
             $pdo = new PDO($CONFIG['dsn'], null, null, $opts);
+            if (str_starts_with((string)$CONFIG['dsn'], 'sqlite:')) {
+                // Register standard MySQL functions for SQLite compatibility
+                $pdo->sqliteCreateFunction('FIELD', function(...$args) {
+                    if (count($args) < 2) return 0;
+                    $val = (string)$args[0];
+                    for ($i = 1; $i < count($args); $i++) {
+                        if ((string)$args[$i] === $val) return $i;
+                    }
+                    return 0;
+                });
+                $pdo->sqliteCreateFunction('CURDATE', fn() => date('Y-m-d'));
+                $pdo->sqliteCreateFunction('NOW', fn() => date('Y-m-d H:i:s'));
+                $pdo->sqliteCreateFunction('IF', fn($cond, $a, $b) => $cond ? $a : $b);
+            }
         } else {
             $port = !empty($CONFIG['db_port']) ? ';port=' . (int)$CONFIG['db_port'] : '';
             $dsn = 'mysql:host=' . $CONFIG['db_host'] . $port . ';dbname=' . $CONFIG['db_name'] . ';charset=utf8mb4';

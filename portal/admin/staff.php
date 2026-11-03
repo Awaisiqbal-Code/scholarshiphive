@@ -77,7 +77,7 @@ if (is_post()) {
 }
 
 $cred = $_SESSION['new_cred'] ?? null; unset($_SESSION['new_cred']);
-$people = q("SELECT u.*, (SELECT COUNT(*) FROM students s WHERE s.officer_id = u.id OR s.back_officer_id = u.id) AS n FROM users u WHERE role IN ('admin','subadmin','officer','tax') ORDER BY FIELD(role,'admin','subadmin','tax','officer'), name")->fetchAll();
+$people = q("SELECT u.*, (SELECT COUNT(*) FROM students s WHERE s.officer_id = u.id OR s.back_officer_id = u.id) AS n FROM users u WHERE role IN ('admin','subadmin','officer','tax') ORDER BY CASE role WHEN 'admin' THEN 1 WHEN 'subadmin' THEN 2 WHEN 'tax' THEN 3 WHEN 'officer' THEN 4 ELSE 5 END, name")->fetchAll();
 $roleName = fn(array $p) => match ($p['role']) { 'admin' => 'Admin', 'subadmin' => 'Sub-admin', 'tax' => 'Tax consultant', default => ($p['team'] === 'backend' ? 'Back-end officer' : 'Front-end officer') };
 
 page_start('Staff and admins', $u, PORTALS[$u['role']]['label']);

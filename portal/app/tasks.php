@@ -171,7 +171,7 @@ function student_tasks_list(int $studentId, string $status = ''): array {
         $sql .= " AND t.status = ?";
         $params[] = $status;
     }
-    $sql .= " ORDER BY FIELD(t.priority, 'high', 'medium', 'low'), t.status = 'pending' DESC, t.due_date ASC, t.id DESC";
+    $sql .= " ORDER BY CASE t.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END, t.status = 'pending' DESC, t.due_date ASC, t.id DESC";
     return q($sql, $params)->fetchAll();
 }
 

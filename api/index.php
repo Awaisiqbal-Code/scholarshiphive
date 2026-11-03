@@ -52,7 +52,17 @@ if (is_file($target)) {
     $_SERVER['SCRIPT_NAME'] = $uri;
     $_SERVER['SCRIPT_FILENAME'] = $target;
     chdir(dirname($target));
-    require $target;
+    try {
+        require $target;
+    } catch (\Throwable $e) {
+        error_log('Portal Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+        http_response_code(500);
+        echo '<div style="font-family:sans-serif; padding:24px; background:#fef2f2; border:1px solid #f87171; border-radius:8px; margin:20px; color:#991b1b;">';
+        echo '<h3 style="margin-top:0;">Portal Server Error</h3>';
+        echo '<p><b>' . htmlspecialchars($e->getMessage()) . '</b></p>';
+        echo '<pre style="font-size:0.85em; background:#fff; padding:12px; border-radius:4px; overflow:auto;">' . htmlspecialchars($e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString()) . '</pre>';
+        echo '</div>';
+    }
     exit;
 }
 
