@@ -17,7 +17,7 @@ if (preg_match('#^/(app|database|\.|\.git)#i', $uri) || preg_match('#\.(sql|sqli
 }
 
 // Cron route
-if ($uri === '/cron.php' || $uri === '/api/cron.php') {
+if (str_contains($uri, 'cron.php')) {
     require __DIR__ . '/cron.php';
     exit;
 }
