@@ -89,7 +89,7 @@ function describe_mistake(string $note, ?string $field): array {
     <div class="eyebrow">Data Verification & Error Reports</div>
     <h1 style="display:flex; align-items:center; gap:10px;">
       <span>Data Check & Discrepancies</span>
-      <span class="badge" style="font-size:0.5em; background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);"><?= count($rows) ?> items</span>
+      <span class="badge" style="font-size:0.5em; background:var(--accent-soft, #e2f0f9); color:var(--brand, #0f5d9e); border:1px solid var(--line, #d8e1ea);"><?= count($rows) ?> items</span>
     </h1>
     <p class="muted">List of all sheet import notes, format warnings, and discrepancies across country spreadsheets. Click <b>"✏️ Edit Student"</b> to correct any record directly, or click <b>"✓ Mark Resolved"</b> when verified.</p>
   </div>
@@ -99,7 +99,7 @@ function describe_mistake(string $note, ?string $field): array {
       <input type="hidden" name="action" value="resolve_all_fixed">
       <input type="hidden" name="c" value="<?= h($c) ?>">
       <input type="hidden" name="show" value="<?= h($show) ?>">
-      <button type="submit" class="btn sm" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;" title="Bulk resolve all verified and fixed items">✓ Clear Verified Items</button>
+      <button type="submit" class="btn sm" style="background:var(--ok-soft, #ddf2e4); border:1px solid var(--ok, #17703a); color:var(--ok, #17703a); font-weight:600;" title="Bulk resolve all verified and fixed items">✓ Clear Verified Items</button>
     </form>
     <a class="btn sm<?= $show !== 'all' ? ' primary' : '' ?>" href="?<?= h(http_build_query(array_filter(['c' => $c]))) ?>">Pending Only</a>
     <a class="btn sm<?= $show === 'all' ? ' primary' : '' ?>" href="?<?= h(http_build_query(array_filter(['c' => $c, 'show' => 'all']))) ?>">Include Resolved</a>
@@ -108,7 +108,7 @@ function describe_mistake(string $note, ?string $field): array {
 
 <section class="panel">
   <?php if (!$rows): ?>
-    <div class="empty" style="padding:40px; text-align:center; color:#94a3b8;">
+    <div class="empty" style="padding:40px; text-align:center; color:var(--muted, #56687a);">
       <div style="font-size:2rem; margin-bottom:10px;">🎉</div>
       <b>All clear! No pending issues found.</b>
       <p style="margin-top:5px; font-size:0.9rem;">There are no open data verification notes for this filter.</p>
@@ -136,18 +136,18 @@ function describe_mistake(string $note, ?string $field): array {
           </td>
           <td>
             <?php if ($n['student_id']): ?>
-              <a href="<?= h(url('admin/student.php?id=' . $n['student_id'])) ?>" style="font-weight:600; color:#38bdf8; text-decoration:none;">
+              <a href="<?= h(url('admin/student.php?id=' . $n['student_id'])) ?>" style="font-weight:700; color:var(--brand, #0f5d9e); text-decoration:none;">
                 <?= h($n['student_name'] ?: 'Student #' . $n['student_id']) ?>
               </a>
               <?php if (!empty($n['student_sr'])): ?>
-                <div style="font-size:0.75rem; color:#64748b;">Sr #<?= (int)$n['student_sr'] ?></div>
+                <div style="font-size:0.75rem; color:var(--muted, #56687a); font-weight:600;">Sr #<?= (int)$n['student_sr'] ?></div>
               <?php endif; ?>
             <?php else: ?>
-              <span class="muted">General Row</span>
+              <span class="muted" style="font-weight:600;">General Row</span>
             <?php endif; ?>
           </td>
           <td style="font-size:0.85rem;">
-            <span style="display:inline-block; padding:2px 8px; border-radius:4px; background:rgba(255,255,255,0.06); color:#cbd5e1;">
+            <span style="display:inline-block; padding:3px 9px; border-radius:6px; background:var(--sunk, #e8edf2); color:var(--head, #12304b); font-weight:600; border:1px solid var(--line, #d8e1ea);">
               <?= h($n['field'] ? (FIELDS[$n['field']][0] ?? $n['field']) : 'General') ?>
             </span>
           </td>
@@ -155,25 +155,25 @@ function describe_mistake(string $note, ?string $field): array {
             <div style="display:flex; align-items:flex-start; gap:8px;">
               <span style="font-size:1.1rem; line-height:1;"><?= $icon ?></span>
               <div>
-                <div style="font-size:0.78rem; font-weight:700; color:#93c5fd; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">
+                <div style="font-size:0.78rem; font-weight:800; color:var(--brand, #0f5d9e); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">
                   <?= h($category) ?>
                 </div>
-                <div style="font-size:0.88rem; color:#e2e8f0; line-height:1.4;">
+                <div style="font-size:0.9rem; color:var(--fg, #1e2a36); line-height:1.45; font-weight:500;">
                   <?= h($desc) ?>
                 </div>
               </div>
             </div>
           </td>
-          <td class="small muted" style="font-size:0.8rem; line-height:1.3;">
-            <div style="color:#cbd5e1;"><?= h($n['sheet']) ?></div>
+          <td class="small muted" style="font-size:0.82rem; line-height:1.35;">
+            <div style="color:var(--head, #12304b); font-weight:600;"><?= h($n['sheet']) ?></div>
             <?php if ($n['ref']): ?>
-              <div style="color:#64748b;"><?= h($n['ref']) ?></div>
+              <div style="color:var(--muted, #56687a); font-weight:500;"><?= h($n['ref']) ?></div>
             <?php endif; ?>
           </td>
           <td style="text-align:right;">
             <div style="display:flex; gap:6px; justify-content:flex-end; align-items:center;">
               <?php if ($n['student_id']): ?>
-                <a href="<?= h(url('admin/student.php?id=' . $n['student_id'])) ?>" class="btn sm" style="background:#1e293b; border:1px solid #3b82f6; color:#60a5fa; font-weight:500; text-decoration:none; padding:4px 10px; font-size:0.78rem; border-radius:6px;" title="Open student form to edit directly">
+                <a href="<?= h(url('admin/student.php?id=' . $n['student_id'])) ?>" class="btn sm" style="font-weight:600; text-decoration:none; padding:4px 10px; font-size:0.78rem; border-radius:6px;" title="Open student form to edit directly">
                   ✏️ Edit Student
                 </a>
               <?php endif; ?>
