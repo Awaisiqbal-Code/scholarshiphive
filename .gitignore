@@ -16,6 +16,8 @@ extras/ocr-ilovepdf/.env
 
 # Scratch scripts and temporary files
 scratch/
+__pycache__/
+*.pyc
 *.log
 *.tmp
 .DS_Store

@@ -16,12 +16,6 @@ if (preg_match('#^/(app|database|\.|\.git)#i', $uri) || preg_match('#\.(sql|sqli
     exit;
 }
 
-// Cron route
-if (str_contains($uri, 'cron.php')) {
-    require __DIR__ . '/cron.php';
-    exit;
-}
-
 $target = $portalRoot . $uri;
 
 // If accessing a directory (e.g. /, /admin, /officer, /student), resolve index.php
