@@ -14,7 +14,8 @@ function db(): PDO {
         if (!empty($CONFIG['dsn'])) {               // used for local testing only
             $pdo = new PDO($CONFIG['dsn'], null, null, $opts);
         } else {
-            $dsn = 'mysql:host=' . $CONFIG['db_host'] . ';dbname=' . $CONFIG['db_name'] . ';charset=utf8mb4';
+            $port = !empty($CONFIG['db_port']) ? ';port=' . (int)$CONFIG['db_port'] : '';
+            $dsn = 'mysql:host=' . $CONFIG['db_host'] . $port . ';dbname=' . $CONFIG['db_name'] . ';charset=utf8mb4';
             $pdo = new PDO($dsn, $CONFIG['db_user'], $CONFIG['db_pass'], $opts);
         }
     } catch (PDOException $e) {
