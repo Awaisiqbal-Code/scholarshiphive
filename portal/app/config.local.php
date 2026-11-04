@@ -7,7 +7,7 @@ if (!$hasMysql) {
     $dbFile = getenv('PORTAL_SQLITE') ?: $bundle;
     if (!getenv('PORTAL_SQLITE') && (getenv('VERCEL') || !is_writable(__DIR__) || !is_writable($dbFile))) {
         $tmpDb = rtrim(sys_get_temp_dir(), '/\\') . '/portal_v5_369.sqlite';
-        if (!is_file($tmpDb) || (is_file($bundle) && filesize($tmpDb) !== filesize($bundle))) {
+        if (!is_file($tmpDb) || (is_file($bundle) && filesize($tmpDb) < filesize($bundle))) {
             @copy($bundle, $tmpDb);
             @chmod($tmpDb, 0666);
         }

@@ -39,6 +39,10 @@ function storage_dir(): string {
     global $CONFIG;
     $d = rtrim((string)($CONFIG['storage_dir'] ?? ''), '/\\') ?: APP . '/storage/files';
     if (!is_dir($d)) @mkdir($d, 0750, true);
+    if (!is_dir($d) || !is_writable($d)) {
+        $d = rtrim(sys_get_temp_dir(), '/\\') . '/portal_storage';
+        if (!is_dir($d)) @mkdir($d, 0750, true);
+    }
     return $d;
 }
 function max_upload_bytes(): int {

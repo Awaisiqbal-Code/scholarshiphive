@@ -121,7 +121,29 @@ final class ZipOut {
         return $path;
     }
 
-    private function out(string $bytes): void { echo $bytes; $this->offset += strlen($bytes); }
+    /** When set (a file handle), the archive is written there instead of to the browser (used by the backup worker). */
+    public $sink = null;
+
+    /** An (empty) folder entry, so empty categories still show up in the archive. */
+    public function addDir(string $path): void {
+        $parts = array_filter(array_map('zip_clean_name', explode('/', $path)), fn($p) => $p !== '');
+        $name = implode('/', $parts) . '/';
+        if (isset($this->names[mb_strtolower($name)])) return;
+        $this->names[mb_strtolower($name)] = true;
+        $this->header($name, 0, 0, time());
+    }
+
+    /** Number of entries written so far. */
+    public function entries(): int { return count($this->central); }
+
+    private function out(string $bytes): void {
+        if ($this->sink !== null) {
+            if (fwrite($this->sink, $bytes) !== strlen($bytes)) throw new RuntimeException('Could not write the backup file (disk full?)');
+        } else {
+            echo $bytes;
+        }
+        $this->offset += strlen($bytes);
+    }
 
     private static function dos(int $t): array {
         $d = getdate($t);
